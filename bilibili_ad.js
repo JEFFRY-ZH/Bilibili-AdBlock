@@ -37,28 +37,16 @@ function removeSplashListAds(body) {
   if (!body.data || typeof body.data !== "object") return 0;
 
   const splashItems = Array.isArray(body.data.list) ? body.data.list : [];
-  const removedIds = new Set();
-
-  body.data.list = splashItems.filter((item) => {
-    if (!isMarkedAd(item)) return true;
-    if (item.id !== undefined && item.id !== null) removedIds.add(item.id);
-    return false;
-  });
-
   const schedules = Array.isArray(body.data.show) ? body.data.show : [];
-  body.data.show = schedules.filter((item) => !removedIds.has(item && item.id));
-
   const cachedIds = Array.isArray(body.data.keep_ids)
     ? body.data.keep_ids.length
     : 0;
+
+  body.data.list = [];
+  body.data.show = [];
   if (Array.isArray(body.data.keep_ids)) body.data.keep_ids = [];
 
-  return (
-    splashItems.length -
-    body.data.list.length +
-    (schedules.length - body.data.show.length) +
-    cachedIds
-  );
+  return splashItems.length + schedules.length + cachedIds;
 }
 
 function removeSplashShowAds(body) {
@@ -67,13 +55,8 @@ function removeSplashShowAds(body) {
   let removed = 0;
 
   if (Array.isArray(body.data.show)) {
-    const originalLength = body.data.show.length;
-    body.data.show = body.data.show.filter((item) => {
-      if (isMarkedAd(item)) return false;
-      if (item && isMarkedAd(item.splash_content)) return false;
-      return true;
-    });
-    removed += originalLength - body.data.show.length;
+    removed += body.data.show.length;
+    body.data.show = [];
   }
 
   if (isMarkedAd(body.data.splash_content)) {
